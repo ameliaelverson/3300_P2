@@ -1,2 +1,157 @@
 <html>
+<head>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<style>
+body {
+  background: black;
+}
+</style>
+</head>
+<body>
+<div id="buttons">
+  <button id="ADHD">ADHD</button>
+  <button id="autism">Autism</button>
+  <button id="cerebalPalsy">Cerebal Palsy</button>
+  <button id="downs">Downs Syndrome</button>
+  <button id="learningDisability">Learning Disability</button>
+</div>
+<div id = "heatmap"></div>
+<div id = "dataset-picker"></div>
+<script>
+// hover ideas: http://bl.ocks.org/josiahdavis/7e488547a6381a365ac9
+// axis/scale label ideas: http://bl.ocks.org/tjdecke/5558084
+// basic code help: http://jsfiddle.net/QWLkR/2/
+// data from: http://www.cdc.gov/nchs/nhis/data-questionnaires-documentation.htm
+
+var gridSize = 25,
+  h = gridSize,
+  w = gridSize,
+  rectPadding = 10;
+
+var margin = {top: 20, right: 20, bottom: 30, left: 20};
+  width = 900 - margin.left - margin.right,
+  height = 380 - margin.top - margin.bottom;
+
+var datasets = [{label: "ADHD", female: "ADHDfemale.csv", male: "ADHDmale.csv"},{label:"Autism", female: "Autismfemale.csv", male: "Autismmale.csv"}, {label: "Cerebal Palsy", female: "Cerebalpalsyfemale.csv", male: "Cerebalpalsymale.csv"}, {label: "Downs Syndrome", female: "Downsfemale.csv", male: "Downsmale.csv"}, {label: "Learning Disability", female: "Learningdisabilityfemale.csv", male: "Learningdisabilitymale.csv"}]
+
+var svg = d3.select("#heatmap").append("svg")
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+function heatMapChart (d) {
+  d3.csv(d.male,
+    function (error, rows) {
+    if (error) {
+      console.log(error);
+    }
+
+    var data_male = [];
+
+    var maxValue = 0;
+    rows.forEach(function (row) {
+      data_male.push({score: Number(row.Value), row: Number(row.Age), col: Number(row.Ratio)});
+
+      if (row.Value > maxValue) {
+        maxValue = row.Value;
+      }
+    });
+
+    var colorLow = 'PowderBlue',
+    colorHigh = 'MediumBlue';
+
+    var colorScale = d3.scale.linear()
+    .domain([0,maxValue])
+    .range([colorLow, colorHigh]);
+
+    var heatMap = svg.selectAll(".heatmap")
+    .data(data_male, function (d) { return d.col + ':' + d.row; })
+    .enter()
+    .append("svg:rect")
+      .attr("x",function (d) {
+        return d.col * h;
+      })
+      .attr("y", function (d) {
+        return d.row * w;
+      })
+      .attr("width", function (d) {
+        return w;
+      })
+      .attr("height", function (d) {
+        return h;
+      })
+      .style("fill", function (d) {
+        return colorScale(d.score);
+      });
+  });
+
+  d3.csv(d.female,
+    function (error, rows) {
+    if (error) {
+      console.log(error);
+    }
+
+    var data_female = [];
+
+    var maxValue = 0;
+    rows.forEach(function (row) {
+      data_female.push({score: Number(row.Value), row: Number(row.Age), col: Number(row.Ratio)});
+
+      if (row.Value > maxValue) {
+        maxValue = row.Value;
+      }
+    });
+
+    var offset = 400;
+
+    var colorLow = 'Pink',
+    colorHigh = 'MediumVioletRed';
+
+    var colorScale = d3.scale.linear()
+    .domain([0,maxValue])
+    .range([colorLow, colorHigh]);
+
+    var heatMap = svg.selectAll(".heatmap")
+    .data(data_female, function (d) { return d.col + ':' + d.row; })
+    .enter()
+    .append("svg:rect")
+      .attr("x",function (d) {
+        return (d.col * h) + offset;
+      })
+      .attr("y", function (d) {
+        return d.row * w;
+      })
+      .attr("width", function (d) {
+        return w;
+      })
+      .attr("height", function (d) {
+        return h;
+      })
+      .style("fill", function (d) {
+        return colorScale(d.score);
+      });
+  });
+};
+
+heatMapChart(datasets[0]);
+
+d3.select("#ADHD").on("click", function () {
+  heatMapChart(datasets[0]);
+});
+d3.select("#autism").on("click", function () {
+  heatMapChart(datasets[1]);
+});
+d3.select("#cerebalPalsy").on("click", function () {
+  heatMapChart(datasets[2]);
+});
+d3.select("#downs").on("click", function () {
+  heatMapChart(datasets[3]);
+});
+d3.select("#learningDisability").on("click", function () {
+  heatMapChart(datasets[4]);
+});
+
+</script>
+</body>
 </html>

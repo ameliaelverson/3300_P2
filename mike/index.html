@@ -97,7 +97,7 @@
 <h3>Disorders</h3>
 <a id = "allDisorders" class = "allToggle">All Disorders</a>
 <a id = "ADDADHDSelect" class = "toggle down disorderToggle ">ADHD</a>
-<a id = "AutismSpectrumSelect" class = "toggle down disorderToggle">Autism</a>
+<a id = "AutismSpectrumSelect" class = "toggle disorderToggle">Autism</a>
 <a id = "LearningDisabilitySelect" class = "toggle disorderToggle">Learning Disability</a>
 <br>
 <h3>Population</h3>
@@ -132,7 +132,7 @@
       .attr("class", "d3-tip")
       .offset([-10,0])
       .html(function(d) {
-        return "<div><span>Age:</span> <span style='color:white'>" + ageList[d.row] + "</span></div>" + "<div><span>FPL Ratio:</span> <span style='color:white'>" + ratioList[d.col] + "</span></div>" + "<div><span>Value:</span> <span style='color:white'>" + d3.round(d.score,2) + "</span></div>";
+        return "<div><span>Age:</span> <span style='color:white'>" + ageList[d.row] + "</span></div>" + "<div><span>FPL Ratio:</span> <span style='color:white'>" + ratioList[d.col] + "</span></div>" + "<div><span>Value:</span> <span style='color:white'>" + d3.round(d.score,3) + "</span></div>";
       });
 
     svg.call(tip);
@@ -166,6 +166,9 @@
       .attr("class", "y axis")
       .call(yAxis)
       .style("text-anchor", "end");
+
+    var colorLow = 'Ivory',
+    colorHigh = 'Indigo';
 
     var mapData = [];
 
@@ -225,9 +228,6 @@
             };
           });
 
-          var colorLow = 'Ivory',
-              colorHigh = 'Indigo';
-
           var colorScale = d3.scale.linear()
             .domain([0, maxValue])
             .range([colorLow, colorHigh]);
@@ -255,11 +255,12 @@
               })
             .on('mouseover',tip.show)
             .on('mouseout', tip.hide);
-        }
-      );
+        });
     };
 
-    function processInput (d, sex) {
+    function update_heatmap (d, sex) {
+      //console.log(mapData);
+
       var sexIndex = 0;
       if (sex == "boys") {
         sexIndex = 1;
@@ -269,19 +270,89 @@
         sexIndex = 0;
       };
 
-      var data = "";
-      if (d == "ADDADHD") {
-        data = datasets[0];
-        selectedDisorders[0] = not(selectedDisorders[0]);
-      } else if (d == "AutismSpectrum") {
-        data = datasets[1];
-        selectedDisorders[1] = true;
-      } else if (d == "LearningDisability") {
-        data = datasets[2];
-        selectedDisorders[2] = true;
+      if (d.indexOf("ADDADHD") >= 0) {
+        selectedDisorders[0] = true;
+      } else {
+        selectedDisorders[0] = false;
       }
 
-      heatMapAdd
+      if (d.indexOf("AutismSpectrum") >= 0) {
+        selectedDisorders[1] = true;
+      } else {
+        selectedDisorders[1] = false;
+      }
+
+      if (d.indexOf("LearningDisability") >= 0) {
+        selectedDisorders[2] = true;
+      } else {
+        selectedDisorders[2] = false;
+      }
+
+      //clear mapData values
+      mapData.forEach(function (row, i) {
+        mapData[i].affected = 0;
+        mapData[i].total = 0;
+      })
+
+      selectedDisorders.forEach(function (d, i) {
+        if(d == true) {
+          d3.csv(datasets[i],
+          function (error, rows) {
+            if (error) {
+              console.log(error);
+            };
+
+            rows.forEach(function (row) {
+              if(row.Sex == sexIndex) {
+                mapData.forEach(function (r, i) {
+                  if(r.col == Number(row.Ratio)-1 && r.row == Number(row.Age)-2) {
+                    mapData[i].affected += Number(row.Affected);
+                    mapData[i].total += Number(row.Total);
+                  };
+                });
+              };
+            });
+
+            var maxValue = 0;
+
+            mapData.forEach(function (row, i) {
+              row.score = row.affected / row.total;
+
+              if (row.score > maxValue) {
+                maxValue = row.score;
+              };
+            });
+
+            var colorScale = d3.scale.linear()
+              .domain([0, maxValue])
+              .range([colorLow, colorHigh]);
+
+            var heatMap = svg.selectAll(".heatmap")
+            .data(mapData, function (d) { 
+              return d.col + ':' + d.row; 
+            })
+            .enter()
+            .append("svg:rect")
+              .attr("x",function (d) {
+                return d.col * h;
+              })
+              .attr("y", function (d) {
+                return d.row * w;
+              })
+              .attr("width", function (d) {
+                return w;
+              })
+              .attr("height", function (d) {
+                return h;
+              })
+              .style("fill", function (d) {
+                return colorScale(d.score);
+              })
+            .on('mouseover',tip.show)
+            .on('mouseout', tip.hide);
+          });
+        };
+      });
     };
 
     var disorder = "ADHD.csv";
@@ -366,8 +437,6 @@ function sumMerge(data,columns){
   for (var row in data){
       var rowSum = 0;
       columns.forEach(function(column){
-        // console.log(column);
-        // console.log(row);
         rowSum += data[row][column];
       });
 
@@ -494,7 +563,6 @@ function plotTrend(data){
 
   //Run regression and plot result
   var model = leastSquaresOrdinal(data,x,y);
-  console.log(model);
 
  trends.select(".regression")
       .transition()
@@ -591,7 +659,6 @@ function init(){
 
   //Run regression and plot result
   var model = leastSquaresOrdinal(data,x,y);
-  console.log(model);
 
   var regressionLine = trends.append("line")
       .attr("class", "regression")
@@ -625,7 +692,6 @@ d3.selectAll(".toggle").on("click", function(d){
     }
     else if(button.classed("popToggle") && trendPopulations.length > 1){
       removeItem(button.attr("id"),trendPopulations);
-      console.log("ey")
       goodToDraw = true;
 
     }
@@ -656,6 +722,7 @@ d3.selectAll(".toggle").on("click", function(d){
   //Was a valid operation performed?
   if(goodToDraw){
     updateTrend();
+    update_heatmap(trendDisorders,trendPopulations);
     //Now change the class of the button
     button.classed("down", (!isDown));
   }
@@ -676,6 +743,7 @@ d3.select("#allDisorders").on("click",function(d){
     button.classed("down",true);
     trendDisorders = ["ADDADHD","AutismSpectrum","LearningDisability"];
     updateTrend();
+    update_heatmap(trendDisorders,trendPopulations);
   }
 
 });
@@ -693,6 +761,8 @@ d3.select("#allGenders").on("click",function(d){
     button.classed("down",true);
     trendPopulations = ["boys","girls"];
     updateTrend();
+    update_heatmap(trendDisorders,trendPopulations);
+
   }
 
 });

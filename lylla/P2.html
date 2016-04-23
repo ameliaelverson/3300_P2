@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<!-- Lylla Younes, ley23, Project 2, CS 3300 -->
+<head> 
+	<title>Brain Viz</title>
+	<meta charset="utf-8"/>
+	<link rel="stylesheet" type="text/css" href="d3.slider.css" media="screen" />
+	<script type="text/javascript" src="d3.v3.min.js"></script>
+	<script type="text/javascript" src="d3.slider.js"></script>
+    <link href='https://fonts.googleapis.com/css?family=Roboto:400,300,500,100' rel='stylesheet' type='text/css'>
+    <link href="style.css" rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="d3.slider.css" /> 
+    <script type="text/javascript" src="regression.js"></script>
+    <!-- <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script> -->
+</head>
+
+	<body>
+
+
+
+	<div class="outer">
+		<object data="brain.svg" type="image/svg+xml" id="brain" > </object>
+		<div class="inner"></div>
+	</div>
+    
+    
+
+    <div class="slider" id="slider"> </div>
+	
+	<div class="outside">
+		<!--
+		 <p> <input class="slider" id="slider" type="range" /> </p>
+		-->
+		<div class="tester" id="tester"> </div>
+	</div>
+
+	
+	
+
+
+
+	<!-- For brain as background, no animation-->
+	<script>
+		/* 
+		var svg = d3.select("#tester").append("svg")
+	        .attr("width", 500)
+	        .attr("height", 500);
+
+
+		for (var i=0 ; i<1000 ; i++) {
+			var circle = svg.append("circle")
+				.attr("cx", 100)
+				.attr("cy", 100)
+				.attr("r", 50)
+				.attr("fill","red");
+		} */
+
+	</script>
+
+
+
+
+	
+	<!-- For animated svg brain. 
+	<script>
+		var a = document.getElementById("brain");
+		a.addEventListener("load",function(){
+		//var svgDoc = a.contentDocument; //get the inner DOM of alpha.svg
+		//var delta = svgDoc.getElementById("path"); //get the inner element by id
+		},false);
+	</script> -->
+
+
+
+
+	<!-- For ball tester -->
+	<script>
+		var prev_percentage = 200;
+		var where_on_stack = 1000; //num. initial nodes
+
+		var svg = d3.select("#tester").append("svg")
+	        .attr("width", 1000)
+	        .attr("height", 200)
+	        .attr("x",25)
+	        .attr("y",25);
+
+		function getRand(min, max) {
+		  return Math.random() * (max - min) + min;
+		}
+
+		var original_nodes = 1000;
+		var stack = new Array();
+
+		//draw original circle, start with 5000 nodes
+		for (var i=0 ; i < original_nodes ; i++) {
+			var circle = svg.append("circle")
+				.attr("cx", getRand(0,200))
+				.attr("cy", getRand(0,200))
+				.attr("id","c"+i)
+				.attr("r", 1)
+				.attr("fill","green");
+		}
+
+		/*
+		var data = [[100,-8.808],[150, -3.839],[200, -2.437]];
+		var result = regression('linear', data);
+		var slope = result.equation[0];
+		var yintcpt = result.equation[1];
+		*/
+
+		function draw(percentage) {
+			//d3.selectAll("").remove();
+			var slope = 0.0637;
+			var yintcpt = -14.584;
+
+			var curr_delta_matter = (slope*percentage) + yintcpt;
+			var prev_delta_matter = (slope*prev_percentage) + yintcpt;
+
+			prev_percentage = percentage;
+
+			var change_in_delta = curr_delta_matter - prev_delta_matter;
+
+			console.log(change_in_delta);
+
+
+			if (change_in_delta > 0) {
+				console.log("in 1");
+				var num_to_add = change_in_delta*(Math.floor(original_nodes));
+				for (var i=0 ; i < num_to_add ; i++) {
+					var circ_id = stack.pop();
+					var circle = svg.append("circle")
+						.attr("cx", getRand(0,200))
+						.attr("cy", getRand(0,200))
+						.attr("id",circ_id)
+						.attr("r", 1)
+						.attr("fill","green");
+				}
+
+			} else if (change_in_delta < 0) {
+				console.log("in 2");
+				var num_to_rem = change_in_delta*(Math.floor(original_nodes));
+				for (var i=where_on_stack ; i > (where_on_stack - num_to_rem) ; i--) {
+					stack.push("c"+i);
+					console.log(stack.pop());
+					d3.select("#"+stack.pop()).remove();
+				}
+			}
+		}
+
+    	var slider = d3.slider().min(50).max(200).ticks(5).showRange(true).value(200)
+    		.callback(function(evt) {
+    			draw(slider.value());
+    		});
+
+		// Render the slider in the div
+		d3.select('#slider').call(slider);
+
+
+</script>
+
+
+
+	</script>
+
+
+
+	<!-- Right now, need to figure out... 
+		 	1. how to delete SOME circles
+		 	2. how to put circles on brain
+		 	3. what the right math is for beta correlations -->
+	
+
+	</body>
+
+</html>

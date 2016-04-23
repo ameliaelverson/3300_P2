@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<!-- Lylla Younes, ley23, Project 2, CS 3300 -->
+<head> 
+	<title>Brain Viz</title>
+	<meta charset="utf-8"/>
+	<link rel="stylesheet" type="text/css" href="d3.slider.css" media="screen" />
+	<script type="text/javascript" src="d3.v3.min.js"></script>
+	<script type="text/javascript" src="d3.slider.js"></script>
+    <link rel="stylesheet" href="d3.slider.css" /> 
+    <script type="text/javascript" src="regression.js"></script>
+</head>
+
+	<body>
+
+    
+    <div style="width:50%; height:100%;" class="slider" id="slider"></div>
+
+
+	<!-- For ball tester -->
+	<script>
+
+    	var slider = d3.slider().min(0).max(10).ticks(10).showRange(true).value(6);
+		// Render the slider in the div
+		d3.select('#slider').call(slider);
+
+
+
+	</script>
+
+	</body>
+</html>
+

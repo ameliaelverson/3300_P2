@@ -1,0 +1,547 @@
+<html>
+<head>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<style>
+    body {
+      background: black;
+      font-family: "Open Sans"; 
+    }
+  h3{
+    color: white;
+  }
+ .toggle {
+    background: #FF7588;
+    cursor: pointer;
+    border-top: solid 2px #eaeaea;
+    border-left: solid 2px #eaeaea;
+    border-bottom: solid 2px #777;
+    border-right: solid 2px #777;
+    padding: 2px 2px;       
+    }
+
+  .toggle.down {
+    background: #C2255F;
+    border-top: solid 2px #777;
+    border-left: solid 2px #777;
+    border-bottom:solid 2px  #eaeaea;
+    border-right: solid 2px #eaeaea;
+    }
+
+</style>
+</head>
+<body>
+<div id="buttons">
+  <button id="ADHD">ADHD</button>
+  <button id="autism">Autism</button>
+  <button id="cerebalPalsy">Cerebal Palsy</button>
+  <button id="downs">Downs Syndrome</button>
+  <button id="learningDisability">Learning Disability</button>
+</div>
+<div id = "heatmap"></div>
+<div id = "dataset-picker"></div>
+
+<h3>Disorders</h3>
+<a id = "ADDADHDSelect" class = "toggle down disorderToggle ">ADHD</a>
+<a id = "AutismSpectrumSelect" class = "toggle down disorderToggle">Autism</a>
+<a id = "LearningDisabilitySelect" class = "toggle dup disorderToggle">Learning Disability</a>
+<br>
+<h3>Population</h3>
+<a id = "boysSelect" class = "toggle down popToggle">Boys</a>
+<a id = "girlsSelect" class = "toggle popToggle">Girls</a>
+<div id = "trends"></div>
+<script>
+// hover ideas: http://bl.ocks.org/josiahdavis/7e488547a6381a365ac9
+// axis/scale label ideas: http://bl.ocks.org/tjdecke/5558084
+// basic code help: http://jsfiddle.net/QWLkR/2/
+// data from: http://www.cdc.gov/nchs/nhis/data-questionnaires-documentation.htm
+
+var gridSize = 25,
+  h = gridSize,
+  w = gridSize,
+  rectPadding = 10;
+
+var transitionDuration = 750;
+
+var margin = {top: 20, right: 20, bottom: 30, left: 20};
+  width = 900 - margin.left - margin.right,
+  height = 380 - margin.top - margin.bottom;
+
+var datasets = [{label: "ADHD", female: "ADHDfemale.csv", male: "ADHDmale.csv"},{label:"Autism", female: "Autismfemale.csv", male: "Autismmale.csv"}, {label: "Cerebal Palsy", female: "Cerebalpalsyfemale.csv", male: "Cerebalpalsymale.csv"}, {label: "Downs Syndrome", female: "Downsfemale.csv", male: "Downsmale.csv"}, {label: "Learning Disability", female: "Learningdisabilityfemale.csv", male: "Learningdisabilitymale.csv"}]
+
+var svg = d3.select("#heatmap").append("svg")
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+function heatMapChart (d) {
+  d3.csv(d.male,
+    function (error, rows) {
+    if (error) {
+      console.log(error);
+    }
+
+    var data_male = [];
+
+    var maxValue = 0;
+    rows.forEach(function (row) {
+      data_male.push({score: Number(row.Value), row: Number(row.Age), col: Number(row.Ratio)});
+
+      if (row.Value > maxValue) {
+        maxValue = row.Value;
+      }
+    });
+
+    var colorLow = 'PowderBlue',
+    colorHigh = 'MediumBlue';
+
+    var colorScale = d3.scale.linear()
+    .domain([0,maxValue])
+    .range([colorLow, colorHigh]);
+
+    var heatMap = svg.selectAll(".heatmap")
+    .data(data_male, function (d) { return d.col + ':' + d.row; })
+    .enter()
+    .append("svg:rect")
+      .attr("x",function (d) {
+        return d.col * h;
+      })
+      .attr("y", function (d) {
+        return d.row * w;
+      })
+      .attr("width", function (d) {
+        return w;
+      })
+      .attr("height", function (d) {
+        return h;
+      })
+      .style("fill", function (d) {
+        return colorScale(d.score);
+      });
+  });
+
+  d3.csv(d.female,
+    function (error, rows) {
+    if (error) {
+      console.log(error);
+    }
+
+    var data_female = [];
+
+    var maxValue = 0;
+    rows.forEach(function (row) {
+      data_female.push({score: Number(row.Value), row: Number(row.Age), col: Number(row.Ratio)});
+
+      if (row.Value > maxValue) {
+        maxValue = row.Value;
+      }
+    });
+
+    var offset = 400;
+
+    var colorLow = 'Pink',
+    colorHigh = 'MediumVioletRed';
+
+    var colorScale = d3.scale.linear()
+    .domain([0,maxValue])
+    .range([colorLow, colorHigh]);
+
+    var heatMap = svg.selectAll(".heatmap")
+    .data(data_female, function (d) { return d.col + ':' + d.row; })
+    .enter()
+    .append("svg:rect")
+      .attr("x",function (d) {
+        return (d.col * h) + offset;
+      })
+      .attr("y", function (d) {
+        return d.row * w;
+      })
+      .attr("width", function (d) {
+        return w;
+      })
+      .attr("height", function (d) {
+        return h;
+      })
+      .style("fill", function (d) {
+        return colorScale(d.score);
+      });
+  });
+};
+
+
+//Could probably rework this model to use one data object instead of many
+//but whatever
+
+function leastSquares(points) {
+  var model = { intercept: 0, slope: 0 };
+  
+  if (points.length == 0) { return model; }
+  if (points.length == 1) {
+    model.slope = points[0].y / points[0].x;
+    return model;
+  }
+
+  var meanX = d3.mean(points, function (d) { 
+    return d.x;
+  });
+
+  var meanY = d3.mean(points, function (d) { 
+    return d.y;
+  });
+
+  model.slope = d3.sum(points, function (d) {
+    return (d.x - meanX) * (d.y - meanY);
+  });
+
+  model.slope /= d3.sum(points, function (d) {
+    return (d.x - meanX) * (d.x - meanX);
+  });
+
+  model.intercept = meanY - model.slope * meanX;
+  return model;
+}
+
+var margin = {top: 50, right: 30, bottom: 150, left: 80},
+    width =1000 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var axisColor = "white";
+
+var devData = {"<0.5":{"ADDADHD_boys":55.0,"ADDADHD_girls":15.0,"AutismSpectrum_boys":11.0,"AutismSpectrum_girls":2.0,"LearningDisability_boys":42.0,"LearningDisability_girls":23.0,"boys":416.0,"girls":371.0},
+"0.5-0.74":{"ADDADHD_boys":44.0,"ADDADHD_girls":26.0,"AutismSpectrum_boys":13.0,"AutismSpectrum_girls":3.0,"LearningDisability_boys":42.0,"LearningDisability_girls":22.0,"boys":366.0,"girls":389.0},
+"0.75-0.99":{"ADDADHD_boys":47.0,"ADDADHD_girls":22.0,"AutismSpectrum_boys":14.0,"AutismSpectrum_girls":2.0,"LearningDisability_boys":41.0,"LearningDisability_girls":29.0,"boys":389.0,"girls":382.0},
+"1.0-1.24":{"ADDADHD_boys":41.0,"ADDADHD_girls":21.0,"AutismSpectrum_boys":10.0,"AutismSpectrum_girls":3.0,"LearningDisability_boys":39.0,"LearningDisability_girls":20.0,"boys":376.0,"girls":401.0},
+"1.25-1.49":{"ADDADHD_boys":38.0,"ADDADHD_girls":19.0,"AutismSpectrum_boys":13.0,"AutismSpectrum_girls":6.0,"LearningDisability_boys":34.0,"LearningDisability_girls":22.0,"boys":353.0,"girls":345.0},
+"1.5-1.74":{"ADDADHD_boys":33.0,"ADDADHD_girls":13.0,"AutismSpectrum_boys":15.0,"AutismSpectrum_girls":1.0,"LearningDisability_boys":28.0,"LearningDisability_girls":13.0,"boys":335.0,"girls":308.0},
+"1.75-1.99":{"ADDADHD_boys":41.0,"ADDADHD_girls":11.0,"AutismSpectrum_boys":7.0,"AutismSpectrum_girls":2.0,"LearningDisability_boys":22.0,"LearningDisability_girls":17.0,"boys":267.0,"girls":261.0},
+"2-2.49":{"ADDADHD_boys":58.0,"ADDADHD_girls":23.0,"AutismSpectrum_boys":18.0,"AutismSpectrum_girls":6.0,"LearningDisability_boys":36.0,"LearningDisability_girls":18.0,"boys":501.0,"girls":475.0},
+"2.50-2.99":{"ADDADHD_boys":39.0,"ADDADHD_girls":19.0,"AutismSpectrum_boys":10.0,"AutismSpectrum_girls":4.0,"LearningDisability_boys":33.0,"LearningDisability_girls":12.0,"boys":460.0,"girls":459.0},
+"3.00-3.49":{"ADDADHD_boys":35.0,"ADDADHD_girls":14.0,"AutismSpectrum_boys":8.0,"AutismSpectrum_girls":2.0,"LearningDisability_boys":25.0,"LearningDisability_girls":12.0,"boys":403.0,"girls":362.0},
+"3.50-3.99":{"ADDADHD_boys":20.0,"ADDADHD_girls":10.0,"AutismSpectrum_boys":9.0,"AutismSpectrum_girls":3.0,"LearningDisability_boys":17.0,"LearningDisability_girls":10.0,"boys":324.0,"girls":323.0},
+"4-4.49":{"ADDADHD_boys":32.0,"ADDADHD_girls":13.0,"AutismSpectrum_boys":7.0,"AutismSpectrum_girls":1.0,"LearningDisability_boys":17.0,"LearningDisability_girls":12.0,"boys":279.0,"girls":273.0},
+"4.50-4.99":{"ADDADHD_boys":24.0,"ADDADHD_girls":10.0,"AutismSpectrum_boys":5.0,"AutismSpectrum_girls":1.0,"LearningDisability_boys":19.0,"LearningDisability_girls":6.0,"boys":202.0,"girls":204.0},
+"5+":{"ADDADHD_boys":89.0,"ADDADHD_girls":40.0,"AutismSpectrum_boys":28.0,"AutismSpectrum_girls":10.0,"LearningDisability_boys":57.0,"LearningDisability_girls":31.0,"boys":1007.0,"girls":975.0}}
+
+
+//removes element id from array
+function removeItem(elementID,array){
+  
+  var item = elementID.slice(0,-6);
+  var index = array.indexOf(item);
+  
+  if (index > -1) {
+    return array.splice(index, 1);
+  }else{
+    return array;
+  }
+}
+
+//Adds an elementid name to an array
+function addItem(elementID,array){
+  var item = elementID.slice(0,-6);
+  array.push(item);
+}
+
+//Given an arbitrary number of object column names, sum the values in each row
+function sumMerge(data,columns){
+  var toReturn = {};
+    
+  for (var row in data){
+      var rowSum = 0;
+      columns.forEach(function(column){
+        // console.log(column);
+        // console.log(row);
+        rowSum += data[row][column];
+      });
+
+      toReturn[row] = rowSum;
+    }
+
+  return toReturn;
+}
+
+//Sum across genders and columns
+function typeMerge(data,genders,columnTypes){
+  var toReturn = {};
+    
+  for (var row in data){
+      var rowSum = 0;
+      columnTypes.forEach(function(type){
+        genders.forEach(function(gender){
+          rowSum += data[row][type + "_" + gender];
+        });
+      });
+
+      toReturn[row] = rowSum;
+    }
+
+  return toReturn;
+}
+//Returns an obeject where the values in num are divded by the corresponding
+//values in denom
+function divideMerge(num,denom){
+  var toReturn = {}
+  for(var key in num){
+    toReturn[key] = num[key] / denom[key];
+  }
+  return toReturn;
+}
+//Sums data from an arbitrary number of disability counts and divides
+//by the total number of children in each income group. Totals is also of 
+//arbitrary so that we can plot boys vs girls
+function mergeSets(disabilities,totals){
+  var disSummed = typeMerge(devData,totals,disabilities);
+  var totalSummed = sumMerge(devData,totals);
+
+  //Need to format this nicely for plotting
+  var percents = divideMerge(disSummed,totalSummed);
+
+  var toReturn = [];
+
+  for (key in percents){
+    toReturn.push({"group" : key,
+                   "percentDisabled" : percents[key]});
+  };
+  return toReturn;
+}
+
+function leastSquaresOrdinal(points, x_scale, y_scale) {
+  //Run a least squares regression with an ordinal x axis.
+  //Note that the output does not require scaling on its own
+  var model = { intercept: 0, slope: 0 };
+
+  //Transform x points so that we can run regression
+  points = points.map(function (d){
+    return {"x" : x_scale(d.group), "y": y_scale(d.percentDisabled)}
+  });
+  
+  if (points.length == 0) { return model; }
+  if (points.length == 1) {
+    model.slope = points[0].y / points[0].x;
+    return model;
+  }
+
+  var meanX = d3.mean(points, function (d) { 
+    return d.x;
+  });
+
+  var meanY = d3.mean(points, function (d) { 
+    return d.y;
+  });
+
+  model.slope = d3.sum(points, function (d) {
+    return (d.x - meanX) * (d.y - meanY);
+  });
+
+  model.slope /= d3.sum(points, function (d) {
+    return (d.x - meanX) * (d.x - meanX);
+  });
+
+  model.intercept = meanY - model.slope * meanX;
+  return model;
+}
+
+function plotTrend(data){
+  //Plots points on the axis
+
+  // //Remove old points and axis, want to change this so that they transition
+  // //Also probably want to make axis transition animated
+  // d3.selectAll(".datapoint").remove();
+  //Still need that x scale, let's keep it encapsulated
+  var groups = data.map(function(d){return d.group;})
+  var x = d3.scale.ordinal().domain(groups).rangePoints([0,width]);
+
+
+  var y_max = d3.max(data, function(d){return d.percentDisabled;});
+  var y_max_padded = y_max + 0.15 * y_max
+  var y = d3.scale.linear().range([height, 0])
+                  .domain([0, y_max_padded]);
+
+  var yAxis = d3.svg.axis().scale(y).orient("left").ticks(5);
+
+  //Change the y axis
+  d3.select(".y_axis")
+      .transition()
+      .duration(transitionDuration)
+      .call(yAxis);
+
+  var points = trends.selectAll("circle")
+    .data(data)
+    .transition()
+    .duration(transitionDuration)
+    .attr("cx", function (d) { return x(d.group); })
+    .attr("cy", function (d) { return y(d.percentDisabled); });
+    // .attr("r", 10)
+    // .attr("class","datapoint")
+    // .style("fill", "PowderBlue");
+
+  //Run regression and plot result
+  var model = leastSquaresOrdinal(data,x,y);
+  console.log(model);
+
+ trends.select(".regression")
+      .transition()
+      .duration(transitionDuration)
+      .attr("x1", 0)
+      .attr("y1", model.intercept)
+      .attr("x2", width)
+      .attr("y2", (model.slope * width + model.intercept));
+
+}
+
+//Called when we need to plot the data in trendDisorders and
+//trendPopulations
+
+//useful for transitions: http://bl.ocks.org/d3noob/7030f35b72de721622b8
+function updateTrend(){
+  var merged = mergeSets(trendDisorders,trendPopulations);
+  plotTrend(merged);
+}
+
+//Just sets up the axis labels and plots an intitial trend
+function init(){
+
+  //We want trends to be global
+  trends = d3.select("#trends")
+    .append("svg")
+        .attr("width", width + margin.left + margin.right + 20)
+        .attr("height", height + margin.top + margin.bottom + 20)
+        .attr("fill", axisColor)
+    .append("g")
+        .attr("transform", 
+              "translate(" + margin.left + "," + margin.top + ")")
+        .attr("fill", axisColor);
+
+
+  trends.append("text").attr("x", width /2)
+                    .attr("y", height + 100)
+                    .style("text-anchor","middle")
+                    .text("Family Income as Fraction of Federal Poverty Line")
+                    .attr("fill", axisColor);
+
+  trends.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", -55 )
+      .attr("x",  -1 * height/2)
+      .style("text-anchor", "middle")
+      .text("% With Disability");
+
+
+  trends.append("text")
+      .attr("y", 5 )
+      .attr("x", width/2)
+      .style("text-anchor", "middle")
+      .text("Impact of Income");
+
+  //Set up the intial data
+  var data = mergeSets(trendDisorders,trendPopulations);
+
+  var groups = data.map(function(d){return d.group;})
+  
+  var x = d3.scale.ordinal().domain(groups).rangePoints([0,width]);
+
+  var xAxis = d3.svg.axis().scale(x).orient("bottom").ticks(5);
+
+  trends.append("g")
+        .attr("class", "x_axis")
+        .call(xAxis).attr("transform","translate(0,"+ height + ")")
+            .selectAll("text")  
+            .style("text-anchor", "end")
+            .attr("dx", "-.8em")
+            .attr("dy", ".15em")
+            .attr("transform", function(d) {
+                return "rotate(-65)" 
+                });;
+
+  var y_max = d3.max(data, function(d){return d.percentDisabled;});
+  var y_max_padded = y_max + 0.15 * y_max
+  var y = d3.scale.linear().range([height, 0])
+                  .domain([0, y_max_padded]);
+
+  var yAxis = d3.svg.axis().scale(y).orient("left").ticks(5);
+
+  trends.append("g")
+      .attr("class", "y_axis")
+      .call(yAxis);
+      
+  var points = trends.selectAll("circle").data(data).enter()
+    .append("circle")
+    .attr("cx", function (d) { return x(d.group); })
+    .attr("cy", function (d) { return y(d.percentDisabled); })
+    .attr("r", 10)
+    .attr("class","datapoint")
+    .style("fill", "PowderBlue");
+
+  //Run regression and plot result
+  var model = leastSquaresOrdinal(data,x,y);
+  console.log(model);
+
+  var regressionLine = trends.append("line")
+      .attr("class", "regression")
+      .attr("x1", 0)
+      .attr("y1", model.intercept)
+      .attr("x2", width)
+      .attr("y2", (model.slope * width + model.intercept))
+      .style("stroke", "red");
+
+}
+
+//Holds the disorders that we want to plot
+var trendDisorders = ["ADDADHD","AutismSpectrum"];
+//Holds the populations that we want to plot
+var trendPopulations = ["boys"];
+//Initial display
+init();
+
+//Handle the toggle events
+d3.selectAll(".toggle").on("click", function(d){
+  var button = d3.select(this);
+  var isDown = button.classed("down");
+  console.log(button.attr("id"));
+
+  //Was a valid operation performed? If so, redraw
+  var goodToDraw = false;
+
+
+  //The user wants to remove these data, only proceed if there' at least one
+  //other item in the array
+  if(isDown){
+    //Dealing with population parameter
+
+    if(button.classed("disorderToggle") && trendDisorders.length >1){
+      removeItem(button.attr("id"),trendDisorders);
+      goodToDraw = true;
+    }else if(button.classed("popToggle") && trendPopulations.length > 1){
+      removeItem(button.attr("id"),trendPopulations);
+      goodToDraw = true;
+
+    }
+  }
+
+  //The user wants to add data
+  else if (!isDown){
+    console.log("adding");
+    if(button.classed("disorderToggle")){
+      addItem(button.attr("id"),trendDisorders);
+      goodToDraw = true;
+    }else{
+      addItem(button.attr("id"),trendPopulations);
+      goodToDraw = true;
+    }
+  }
+
+  //Was a valid operation performed?
+  if(goodToDraw){
+    updateTrend();
+    //Now change the class of the button
+    button.classed("down", (!isDown));
+  }
+
+})
+
+
+</script>
+</body>
+</html>

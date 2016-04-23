@@ -1,0 +1,69 @@
+body {
+	background-color: white;
+	color:black;
+}
+
+svg {
+  background-color: white;
+}
+
+svg #layer1 #path8 {
+	stroke-dasharray: 4400;
+	stroke-dashoffset: 4400;
+	animation: dash 3s linear forwards;
+}
+
+@keyframes dash {
+	to {
+	   stroke-dashoffset: 0;
+	}
+}
+
+.outer {
+	margin-top: 10%;
+	margin-left: 20%;
+	z-index:-1;
+}
+
+.inner {
+	margin-top: 10%;
+	margin-left: 10%;
+	z-index:1;
+}
+
+
+.tester {
+	width:200px;
+	height:200px;
+	margin-left: 20%;
+}
+
+
+
+.outside {
+	width: 600px;
+	height: 600px;
+}
+
+.update {
+	width:60px;
+	height:20px;
+	background-color: blue;
+	margin-top: 2px;
+	margin-left: 2px;
+}
+
+.update input[type="text"] {
+  width:150px;
+}
+.update input[type="radio"] {
+  width:20px;
+}
+
+
+
+
+
+
+
+

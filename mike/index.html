@@ -3,6 +3,7 @@
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
 <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+<script src="https://cdn.jsdelivr.net/jstat/1.5.2/jstat.min.js"></script>
 <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
 <style>
   body {
@@ -92,18 +93,22 @@
   <button id="learningDisability">Learning Disability</button>
 </div>
 <div id = "heatmap"></div>
-<div id = "dataset-picker"></div>
-
-<h3>Disorders</h3>
-<a id = "allDisorders" class = "allToggle">All Disorders</a>
-<a id = "ADDADHDSelect" class = "toggle down disorderToggle ">ADHD</a>
-<a id = "AutismSpectrumSelect" class = "toggle down disorderToggle">Autism</a>
-<a id = "LearningDisabilitySelect" class = "toggle disorderToggle">Learning Disability</a>
-<br>
-<h3>Population</h3>
-<a id = "allGenders" class = "allToggle popToggle">Both Genders</a>
-<a id = "boysSelect" class = "toggle down popToggle">Boys</a>
-<a id = "girlsSelect" class = "toggle popToggle">Girls</a>
+<div id = "dataset-picker">
+  <h3>Disorders</h3>
+    <a id = "allDisorders" class = "allToggle">All Disorders</a>
+    <a id = "ADDADHDSelect" class = "toggle down disorderToggle ">ADHD</a>
+    <a id = "AutismSpectrumSelect" class = "toggle down disorderToggle">Autism</a>
+    <a id = "LearningDisabilitySelect" class = "toggle disorderToggle">Learning Disability</a>
+  <br>
+  <h3>Population</h3>
+  <a id = "allGenders" class = "allToggle popToggle">Both Genders</a>
+  <a id = "boysSelect" class = "toggle down popToggle">Boys</a>
+  <a id = "girlsSelect" class = "toggle popToggle">Girls</a>
+</div>
+<div id = "significance">
+  <span id = "isig"></span>
+  <span id = "pvalue"></span>
+</div>
 <div id = "trends"></div>
 <script>
     // Data: http://www.cdc.gov/nchs/nhis/data-questionnaires-documentation.htm
@@ -455,6 +460,21 @@ function leastSquaresOrdinal(points, x_scale, y_scale) {
   });
 
   model.intercept = meanY - model.slope * meanX;
+
+  //Need to calculate SSR
+  var SSR = d3.sum(points.map(function (d){
+    return Math.pow((model.slope * d.x + model.intercept) - d.y,2);
+  }));
+
+  var SST = d3.sum(points.map(function (d){
+    return Math.pow((d.y - meanY),2);
+  }));
+
+  model.n = points.length;
+  model.rSquared = 1 - (SSR/SST);
+  model.fStat = ((model.rSquared)/((1-model.rSquared)/(model.n -2)));
+  model.p = 1 - jStat.centralF.cdf(model.fStat,1,model.n -1);
+
   return model;
 }
 
@@ -495,6 +515,7 @@ function plotTrend(data){
   //Run regression and plot result
   var model = leastSquaresOrdinal(data,x,y);
   console.log(model);
+  updateSig(model);
 
  trends.select(".regression")
       .transition()
@@ -506,9 +527,24 @@ function plotTrend(data){
 
 }
 
+//Called when  we need to update the significance div
+function updateSig(model){
+  var pValue = model.p;
+  var pTarget = d3.select("#pvalue");
+  // var isig = d3.select("#isig");
+
+  if (pValue > 0.05){
+    pTarget.text("Not Significant. p = " + d3.round(pValue),3)
+        .style("fill","#F92672");
+  }else{
+    isig.text("Significant! p = " + d3.round(pValue),3)
+        .style("fill","#A6E22C");
+  }
+
+}
+
 //Called when we need to plot the data in trendDisorders and
 //trendPopulations
-
 //useful for transitions: http://bl.ocks.org/d3noob/7030f35b72de721622b8
 function updateTrend(){
   var merged = mergeSets(trendDisorders,trendPopulations);
@@ -591,8 +627,9 @@ function init(){
 
   //Run regression and plot result
   var model = leastSquaresOrdinal(data,x,y);
-  console.log(model);
+  // console.log(model);
 
+  updateSig(model);
   var regressionLine = trends.append("line")
       .attr("class", "regression")
       .attr("x1", 0)

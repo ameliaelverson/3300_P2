@@ -1,0 +1,80 @@
+<script>
+    //Some code borrowed from http://bl.ocks.org/d3noob/473f0cf66196a008cf99
+    //Calculate log difference
+    logProbJSON.forEach(function(d){
+        d.diff = d.SW - d.SP;
+    })
+    var margin = {top: 50, right: 20, bottom: 30, left: 60},
+        width = 600 - margin.left - margin.right,
+        height = 270 - margin.top - margin.bottom;
+
+    var x = d3.scale.ordinal().domain(["Prior", "CG", "BH", "NP", "RTH" , "PW" , "M"]).rangePoints([0,width]);
+
+    //Get the absoulute value of the maximum value that the y needs to display
+    var y_max = d3.max(logProbJSON, function(d){return Math.abs(d.diff);});
+    var y = d3.scale.linear().range([height, 0])
+                    .domain([-1*y_max, y_max]);
+
+    var xAxis = d3.svg.axis().scale(x)
+        .orient("bottom").ticks(5);
+
+    svg.append("g")
+        .attr("class", "x_axis")
+        .call(xAxis);
+
+    var yAxis = d3.svg.axis().scale(y)
+        .orient("left").ticks(5);
+
+    svg.append("g")
+        .attr("class", "y_axis")
+        .call(yAxis);
+
+    var valueline = d3.svg.line()
+                    .x(function(d) { return x(d.Added); })    
+                    .y(function(d) { return y(d.diff); });
+    
+    var svg = d3.select("#p8target")
+        .append("svg")
+            .attr("width", width + margin.left + margin.right + 20)
+            .attr("height", height + margin.top + margin.bottom + 20)
+        .append("g")
+            .attr("transform", 
+                  "translate(" + margin.left + "," + margin.top + ")");
+
+    // Add the valueline path.
+    svg.append("path")
+        .attr("class", "line")
+        .attr("d", valueline(logProbJSON));
+
+    // Add the X Axis
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
+
+    // Add the Y Axis
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis);
+
+    svg.append("text").attr("x", width /2)
+                      .attr("y", height + 40)
+                      .style("text-anchor","middle")
+                      .text("Additional Bird");
+
+    svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", -30 )
+        .attr("x",  -1 * height/2)
+        .style("text-anchor", "middle")
+        .text("logProb");
+
+
+    svg.append("text")
+        .attr("y", 5 )
+        .attr("x", width/2)
+        .style("text-anchor", "middle")
+        .text("LogProb of Adding an Additional Bird");
+
+
+</script>

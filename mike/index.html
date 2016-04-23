@@ -43,11 +43,13 @@
 <div id = "dataset-picker"></div>
 
 <h3>Disorders</h3>
+<a id = "allDisorders" class = "toggle popToggle">All Disorders</a>
 <a id = "ADDADHDSelect" class = "toggle down disorderToggle ">ADHD</a>
 <a id = "AutismSpectrumSelect" class = "toggle down disorderToggle">Autism</a>
 <a id = "LearningDisabilitySelect" class = "toggle dup disorderToggle">Learning Disability</a>
 <br>
 <h3>Population</h3>
+<a id = "allGenders" class = "toggle popToggle">Both Genders</a>
 <a id = "boysSelect" class = "toggle down popToggle">Boys</a>
 <a id = "girlsSelect" class = "toggle popToggle">Girls</a>
 <div id = "trends"></div>
@@ -210,12 +212,9 @@ var margin = {top: 50, right: 30, bottom: 150, left: 80},
 var axisColor = "white";
 
 var devData = {"<0.5":{"ADDADHD_boys":55.0,"ADDADHD_girls":15.0,"AutismSpectrum_boys":11.0,"AutismSpectrum_girls":2.0,"LearningDisability_boys":42.0,"LearningDisability_girls":23.0,"boys":416.0,"girls":371.0},
-"0.5-0.74":{"ADDADHD_boys":44.0,"ADDADHD_girls":26.0,"AutismSpectrum_boys":13.0,"AutismSpectrum_girls":3.0,"LearningDisability_boys":42.0,"LearningDisability_girls":22.0,"boys":366.0,"girls":389.0},
-"0.75-0.99":{"ADDADHD_boys":47.0,"ADDADHD_girls":22.0,"AutismSpectrum_boys":14.0,"AutismSpectrum_girls":2.0,"LearningDisability_boys":41.0,"LearningDisability_girls":29.0,"boys":389.0,"girls":382.0},
-"1.0-1.24":{"ADDADHD_boys":41.0,"ADDADHD_girls":21.0,"AutismSpectrum_boys":10.0,"AutismSpectrum_girls":3.0,"LearningDisability_boys":39.0,"LearningDisability_girls":20.0,"boys":376.0,"girls":401.0},
-"1.25-1.49":{"ADDADHD_boys":38.0,"ADDADHD_girls":19.0,"AutismSpectrum_boys":13.0,"AutismSpectrum_girls":6.0,"LearningDisability_boys":34.0,"LearningDisability_girls":22.0,"boys":353.0,"girls":345.0},
-"1.5-1.74":{"ADDADHD_boys":33.0,"ADDADHD_girls":13.0,"AutismSpectrum_boys":15.0,"AutismSpectrum_girls":1.0,"LearningDisability_boys":28.0,"LearningDisability_girls":13.0,"boys":335.0,"girls":308.0},
-"1.75-1.99":{"ADDADHD_boys":41.0,"ADDADHD_girls":11.0,"AutismSpectrum_boys":7.0,"AutismSpectrum_girls":2.0,"LearningDisability_boys":22.0,"LearningDisability_girls":17.0,"boys":267.0,"girls":261.0},
+"0.5-0.99":{"ADDADHD_boys":91.0,"ADDADHD_girls":48.0,"AutismSpectrum_boys":27.0,"AutismSpectrum_girls":5.0,"LearningDisability_boys":83.0,"LearningDisability_girls":51.0,"boys":755.0,"girls":771.0},
+"1.0-1.49":{"ADDADHD_boys":79.0,"ADDADHD_girls":40.0,"AutismSpectrum_boys":23.0,"AutismSpectrum_girls":9.0,"LearningDisability_boys":73.0,"LearningDisability_girls":42.0,"boys":729.0,"girls":746.0},
+"1.5-1.99":{"ADDADHD_boys":74.0,"ADDADHD_girls":24.0,"AutismSpectrum_boys":22.0,"AutismSpectrum_girls":3.0,"LearningDisability_boys":50.0,"LearningDisability_girls":30.0,"boys":602.0,"girls":569.0},
 "2-2.49":{"ADDADHD_boys":58.0,"ADDADHD_girls":23.0,"AutismSpectrum_boys":18.0,"AutismSpectrum_girls":6.0,"LearningDisability_boys":36.0,"LearningDisability_girls":18.0,"boys":501.0,"girls":475.0},
 "2.50-2.99":{"ADDADHD_boys":39.0,"ADDADHD_girls":19.0,"AutismSpectrum_boys":10.0,"AutismSpectrum_girls":4.0,"LearningDisability_boys":33.0,"LearningDisability_girls":12.0,"boys":460.0,"girls":459.0},
 "3.00-3.49":{"ADDADHD_boys":35.0,"ADDADHD_girls":14.0,"AutismSpectrum_boys":8.0,"AutismSpectrum_girls":2.0,"LearningDisability_boys":25.0,"LearningDisability_girls":12.0,"boys":403.0,"girls":362.0},
@@ -540,6 +539,14 @@ d3.selectAll(".toggle").on("click", function(d){
   }
 
 })
+
+//Handle the "All" events
+d3.select("#allDisorders").onclick{
+  var button = d3.select(this);
+  var isDown = button.classed("down");
+
+  //User wants to
+}
 
 
 </script>
